@@ -1,5 +1,6 @@
 from .base import *
 from .none import *
+from .project import *
 from .task import *
 from .token import *
 from .user import *

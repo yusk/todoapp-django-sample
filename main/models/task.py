@@ -13,6 +13,7 @@ class Task(models.Model):
                                          through_fields=("parent", "child"),
                                          related_name="parent_tasks",
                                          blank=True)
+    projects = models.ManyToManyField("Project", related_name="tasks")
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 

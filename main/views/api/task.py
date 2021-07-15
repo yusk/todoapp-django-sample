@@ -24,13 +24,13 @@ class TaskFilter(filters.FilterSet):
 
 class TaskViewSet(ModelViewSet):
     serializer_class = TaskSerializer
-    queryset = Task.objects.all()
+    queryset = Task.objects.prefetch_related("projects", "child_tasks",
+                                             "parent_tasks")
     filter_class = TaskFilter
     ordering_fields = ('created_at', )
     ordering = ('created_at', )
 
     def perform_create(self, serializer):
-        print("perform_create")
         serializer.save(user=self.request.user)
 
     def get_queryset(self):
