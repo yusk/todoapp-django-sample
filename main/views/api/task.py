@@ -28,3 +28,10 @@ class TaskViewSet(ModelViewSet):
     filter_class = TaskFilter
     ordering_fields = ('created_at', )
     ordering = ('created_at', )
+
+    def perform_create(self, serializer):
+        print("perform_create")
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        return super().get_queryset().filter(user=self.request.user)

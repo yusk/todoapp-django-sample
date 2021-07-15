@@ -1,7 +1,6 @@
 class WithMethodField:
     def __init__(self, method_name=None, **kwargs):
         self.method_name = method_name
-        kwargs['source'] = '*'
         super().__init__(**kwargs)
 
     def bind(self, field_name, parent):
@@ -13,6 +12,9 @@ class WithMethodField:
     def to_representation(self, value):
         method = getattr(self.parent, self.method_name)
         return method(value)
+
+    def get_attribute(self, instance):
+        return instance
 
 
 def with_method_class(field_class):

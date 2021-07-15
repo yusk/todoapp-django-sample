@@ -25,7 +25,7 @@ class TaskSerializer(serializers.ModelSerializer):
             tasks = list(Task.objects.filter(id__in=parent_task_ids))
         instance = super().create(validated_data)
         if tasks:
-            instance.task_set.add(tasks)
+            instance.parent_tasks.add(*tasks)
         return instance
 
     def update(self, instance, validated_data):
@@ -33,7 +33,7 @@ class TaskSerializer(serializers.ModelSerializer):
             parent_task_ids = validated_data.pop('parent_task_ids')
             parent_task_ids = [int(task_id.strip()) for task_id in parent_task_ids.split(",")]
             tasks = list(Task.objects.filter(id__in=parent_task_ids))
-            instance.task_set.add(*tasks)
+            instance.parent_tasks.add(*tasks)
         return super().update(instance, validated_data)
 
     def get_parent_task_ids(self, obj):
