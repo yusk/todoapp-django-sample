@@ -1,29 +1,52 @@
 from django.utils import timezone
+from django_filters.fields import Lookup
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters import rest_framework as filters
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.generics import get_object_or_404
 
 from main.models import Task, Tag
 from main.serializers import TaskSerializer, NoneSerializer, NameSerializer
 
 
 class TaskFilter(filters.FilterSet):
-    title__gt = filters.CharFilter(field_name='title', lookup_expr='gt')
-    title__lt = filters.CharFilter(field_name='title', lookup_expr='lt')
+    def get_by_manytomany(self, queryset, name, value):
+        v = name.split("_")
+        model_name = f"{v[0]}s"
+        key = v[1]
+        kwargs = {f"{model_name}__{key}": value}
+        return queryset.filter(**kwargs).distinct()
+
+    deadline_gt = filters.DateTimeFilter(field_name='deadline',
+                                         lookup_expr='gt')
+    deadline_lt = filters.DateTimeFilter(field_name='deadline',
+                                         lookup_expr='lt')
+    deadline_isnull = filters.BooleanFilter(field_name='deadline',
+                                            lookup_expr='isnull')
+
+    done_at_gt = filters.DateTimeFilter(field_name='done_at', lookup_expr='gt')
+    done_at_lt = filters.DateTimeFilter(field_name='done_at', lookup_expr='lt')
+    done_at_isnull = filters.BooleanFilter(field_name='done_at',
+                                           lookup_expr='isnull')
+
+    tag_name = filters.CharFilter(method='get_by_manytomany')
+    project_id = filters.NumberFilter(method='get_by_manytomany')
+    project_id_isnull = filters.BooleanFilter(field_name='projects',
+                                              lookup_expr='isnull')
 
     order_by = filters.OrderingFilter(fields=(
         ('id', 'id'),
         ('title', 'title'),
+        ('deadline', 'deadline'),
+        ('done_at', 'done_at'),
+        ('created_at', 'created_at'),
     ), )
 
     class Meta:
         model = Task
         fields = [
             "id",
-            "title",
         ]
 
 
