@@ -7,7 +7,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import get_object_or_404
 
 from main.models import Task, Tag
-from main.serializers import TaskSerializer, NameSerializer
+from main.serializers import TaskSerializer, NoneSerializer, NameSerializer
 
 
 class TaskFilter(filters.FilterSet):
@@ -40,6 +40,22 @@ class TaskViewSet(ModelViewSet):
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
+
+    @swagger_auto_schema(request_body=NoneSerializer)
+    @action(detail=True, methods=['post'])
+    def done(self, request, pk=None):
+        task = self.get_object()
+        task.done_at = timezone.now()
+        task.save()
+        return Response(self.get_serializer(task).data)
+
+    @swagger_auto_schema(request_body=NoneSerializer)
+    @action(detail=True, methods=['post'])
+    def undone(self, request, pk=None):
+        task = self.get_object()
+        task.done_at = None
+        task.save()
+        return Response(self.get_serializer(task).data)
 
     @swagger_auto_schema(request_body=NameSerializer)
     @action(detail=True, methods=['post'], url_path="tag/add")
