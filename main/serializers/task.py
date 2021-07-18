@@ -8,10 +8,11 @@ class TaskSerializer(serializers.ModelSerializer):
     parent_task_ids = with_method_class(serializers.CharField)(required=False, help_text='e.g. "1,3"')
     child_task_ids = serializers.SerializerMethodField(read_only=True)
     project_ids = with_method_class(serializers.CharField)(required=False, help_text='e.g. "1,3"')
+    tags = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Task
-        fields = ('id', 'title', 'description', 'deadline', 'done_at', 'parent_task_ids', 'child_task_ids', 'project_ids', )
+        fields = ('id', 'title', 'description', 'deadline', 'done_at', 'parent_task_ids', 'child_task_ids', 'project_ids', 'tags', )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -59,3 +60,6 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def get_project_ids(self, obj):
         return [d.id for d in obj.projects.all()]
+
+    def get_tags(self, obj):
+        return [d.name for d in obj.tags.all()]

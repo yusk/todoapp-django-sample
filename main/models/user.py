@@ -59,11 +59,10 @@ class UserManager(BaseUserManager):
 class User(DeletePreviousFileMixin, PermissionsMixin, AbstractBaseUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.CharField(max_length=64, default='guest user')
-    email = models.EmailField(
-        max_length=254,
-        unique=True,
-        validators=[EmailValidator],
-        db_index=True)
+    email = models.EmailField(max_length=254,
+                              unique=True,
+                              validators=[EmailValidator],
+                              db_index=True)
     password = models.CharField(max_length=254)
 
     icon = models.ImageField(upload_to=icon_file_path, null=True, blank=True)

@@ -1,4 +1,5 @@
 from .base import *
+from .name import *
 from .none import *
 from .project import *
 from .task import *

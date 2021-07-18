@@ -1,8 +1,13 @@
+from django.utils import timezone
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from django_filters import rest_framework as filters
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.generics import get_object_or_404
 
-from main.models import Task
-from main.serializers import TaskSerializer
+from main.models import Task, Tag
+from main.serializers import TaskSerializer, NameSerializer
 
 
 class TaskFilter(filters.FilterSet):
@@ -35,3 +40,23 @@ class TaskViewSet(ModelViewSet):
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
+
+    @swagger_auto_schema(request_body=NameSerializer)
+    @action(detail=True, methods=['post'], url_path="tag/add")
+    def add_tag(self, request, pk=None):
+        task = self.get_object()
+        serializer = NameSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        tag, _ = Tag.objects.get_or_create(name=serializer.data["name"])
+        task.tags.add(tag)
+        return Response(self.get_serializer(task).data)
+
+    @swagger_auto_schema(request_body=NameSerializer)
+    @action(detail=True, methods=['post'], url_path="tag/remove")
+    def remove_tag(self, request, pk=None):
+        task = self.get_object()
+        serializer = NameSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        tag, _ = Tag.objects.get_or_create(name=serializer.data["name"])
+        task.tags.remove(tag)
+        return Response(self.get_serializer(task).data)
