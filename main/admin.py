@@ -30,8 +30,8 @@ class UserAdmin(admin.ModelAdmin):
 
 class TaskAdmin(admin.ModelAdmin):
     list_display = get_field_names(Task)
-    list_editable = ['is_done']
-    list_filter = ('is_done', )
+    # list_editable = ['is_done']
+    # list_filter = ('is_done', )
     list_per_page = 100
     # list_select_related = ('child_tasks', )
     search_fields = ['title']

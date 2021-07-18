@@ -1,10 +1,10 @@
+from django.utils.decorators import method_decorator
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.decorators import schema
-from rest_framework.schemas import ManualSchema
 from django_filters import rest_framework as filters
+from drf_yasg.utils import swagger_auto_schema
 
 from main.models import User
 from main.serializers import UserSerializer
@@ -30,13 +30,14 @@ class UserFilter(filters.FilterSet):
 class UserView(GenericAPIView):
     serializer_class = UserSerializer
 
-    @schema(ManualSchema(fields=[]))
+    @method_decorator(
+        decorator=swagger_auto_schema(responses={200: UserSerializer}))
     def get(self, request):
-        serializer = UserSerializer(request.user)
+        serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
     def put(self, request):
-        serializer = UserSerializer(request.user, data=request.data)
+        serializer = self.get_serializer(request.user, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)

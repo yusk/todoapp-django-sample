@@ -6,7 +6,9 @@ class Task(models.Model):
 
     title = models.CharField(max_length=255)
     description = models.TextField(default="")
-    is_done = models.BooleanField(default=False)
+
+    deadline = models.DateTimeField(null=True, db_index=True)
+    done_at = models.DateTimeField(null=True, db_index=True)
 
     child_tasks = models.ManyToManyField("Task",
                                          through="TaskRelation",
