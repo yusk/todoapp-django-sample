@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from main.models import User
 
@@ -29,3 +30,16 @@ class UserSerializer(serializers.ModelSerializer):
             return obj.icon.url
         except ValueError:
             return None
+
+
+class UserSignUpSerializer(serializers.Serializer):
+    email = serializers.EmailField(write_only=True)
+    password = serializers.CharField(write_only=True, min_length=8)
+    password_confirm = serializers.CharField(write_only=True, min_length=8)
+
+    def validate(self, attrs):
+        if attrs["password"] != attrs["password_confirm"]:
+            raise ValidationError({"password": "password is need to be same to password_confirm."})
+        if User.objects.filter(email=attrs["email"]).count() > 0:
+            raise ValidationError({"email": "This email has been already registered."})
+        return attrs
