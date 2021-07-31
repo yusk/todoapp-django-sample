@@ -7,15 +7,20 @@ from drf_yasg.utils import swagger_auto_schema
 
 from main.models import Task, Tag
 from main.serializers import TaskSerializer, NoneSerializer, NameSerializer
+from main.utils import get_by_manytomany
 
 
 class TaskFilter(filters.FilterSet):
-    def get_by_manytomany(self, queryset, name, value):
-        v = name.split("_")
-        model_name = f"{v[0]}s"
-        key = v[1]
-        kwargs = {f"{model_name}__{key}": value}
-        return queryset.filter(**kwargs).distinct()
+    def get_by_manytomany0(self, queryset, name, value):
+        return get_by_manytomany(queryset, name, value, 0)
+
+    def get_by_manytomany1(self, queryset, name, value):
+        return get_by_manytomany(queryset, name, value, 1)
+
+    title_icontains = filters.CharFilter(field_name='title',
+                                         lookup_expr='icontains')
+    description_icontains = filters.CharFilter(field_name='description',
+                                               lookup_expr='icontains')
 
     deadline_gt = filters.DateTimeFilter(field_name='deadline',
                                          lookup_expr='gt')
@@ -29,8 +34,10 @@ class TaskFilter(filters.FilterSet):
     done_at_isnull = filters.BooleanFilter(field_name='done_at',
                                            lookup_expr='isnull')
 
-    tag_name = filters.CharFilter(method='get_by_manytomany')
-    project_id = filters.NumberFilter(method='get_by_manytomany')
+    child_task_id = filters.NumberFilter(method='get_by_manytomany1')
+    parent_task_id = filters.NumberFilter(method='get_by_manytomany1')
+    tag_name = filters.CharFilter(method='get_by_manytomany0')
+    project_id = filters.NumberFilter(method='get_by_manytomany0')
     project_id_isnull = filters.BooleanFilter(field_name='projects',
                                               lookup_expr='isnull')
 
