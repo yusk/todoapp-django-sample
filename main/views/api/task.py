@@ -1,5 +1,4 @@
 from django.utils import timezone
-from django_filters.fields import Lookup
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
