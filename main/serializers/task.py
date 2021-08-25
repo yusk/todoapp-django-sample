@@ -19,8 +19,7 @@ class TaskSerializer(serializers.ModelSerializer):
         self.fields['id'].read_only = True
         self.fields['description'].required = False
         self.fields['done_at'].required = False
-        self.fields['done_at'].read_only = False
-        self.fields['deadline'].read_only = True
+        self.fields['deadline'].required = False
 
     def create(self, validated_data):
         tasks = None
