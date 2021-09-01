@@ -51,8 +51,11 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         if 'parent_task_ids' in validated_data:
-            parent_task_ids = validated_data.pop('parent_task_ids')
-            parent_task_ids = [int(task_id.strip()) for task_id in parent_task_ids.split(",")]
+            parent_task_ids = []
+            for task_id in validated_data.pop('parent_task_ids').split(","):
+                task_id = int(task_id.strip())
+                if task_id != instance.id:
+                    parent_task_ids.append(task_id)
             tasks = list(Task.objects.filter(id__in=parent_task_ids))
             instance.parent_tasks.add(*tasks)
             tasks = instance.parent_tasks.exclude(id__in=parent_task_ids)
