@@ -85,7 +85,7 @@ class JsonErrorMessageMiddleware(MiddlewareMixin):
                     error_messages = []
                     for k, v in response.data.items():
                         if type(v) is list:
-                            error_messages.append(f"{v[0]}({k})")
+                            error_messages.append(f"{v[0]} ({k})")
                         elif k == "detail":
                             error_messages.append(f"{v}")
                         else:

@@ -12,6 +12,7 @@ router.register('users', views.UserViewSet, basename='user')
 router.register('tasks', views.TaskViewSet, basename='task')
 router.register('tags', views.TagViewSet, basename='tag')
 router.register('projects', views.ProjectViewSet, basename='project')
+router.register('schedules', views.ScheduleViewSet, basename='schedule')
 
 app_name = 'main'
 urlpatterns = [
