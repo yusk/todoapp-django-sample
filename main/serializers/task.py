@@ -18,6 +18,7 @@ class TaskSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         self.fields['id'].read_only = True
         self.fields['description'].required = False
+        self.fields['description'].allow_blank = True
         self.fields['done_at'].required = False
         self.fields['deadline'].required = False
         self.fields['created_at'].read_only = True
