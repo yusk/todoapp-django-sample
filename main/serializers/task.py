@@ -12,7 +12,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
-        fields = ('id', 'title', 'description', 'deadline', 'done_at', 'parent_task_ids', 'child_task_ids', 'project_ids', 'tags', )
+        fields = ('id', 'title', 'description', 'deadline', 'done_at', 'created_at', 'parent_task_ids', 'child_task_ids', 'project_ids', 'tags', )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -20,6 +20,7 @@ class TaskSerializer(serializers.ModelSerializer):
         self.fields['description'].required = False
         self.fields['done_at'].required = False
         self.fields['deadline'].required = False
+        self.fields['created_at'].read_only = True
 
     def create(self, validated_data):
         tasks = None
