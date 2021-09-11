@@ -1,3 +1,4 @@
+from main.helpers.jwt import gen_jwt
 from django.utils.decorators import method_decorator
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
@@ -7,7 +8,7 @@ from django_filters import rest_framework as filters
 from drf_yasg.utils import swagger_auto_schema
 
 from main.models import User
-from main.serializers import UserSerializer
+from main.serializers import UserSerializer, UserPasswordSerializer, TokenSerializer
 
 
 class UserFilter(filters.FilterSet):
@@ -41,6 +42,26 @@ class UserView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+class UserPasswordView(GenericAPIView):
+    serializer_class = UserPasswordSerializer
+
+    @method_decorator(
+        decorator=swagger_auto_schema(responses={200: TokenSerializer}))
+    def put(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = self.request.user
+
+        if not user.check_password(serializer.validated_data["password"]):
+            return Response({"passowrd": "password not matched"})
+
+        user.set_password(serializer.validated_data["new_password"])
+        user.save()
+
+        return Response({"token": gen_jwt(user)})
 
 
 class UserViewSet(RetrieveModelMixin, GenericViewSet):

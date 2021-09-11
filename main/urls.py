@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/auth/uuid/', views.AuthUUIDView.as_view()),
     path('api/auth/user/', obtain_jwt_token),
     path('api/user/', views.UserView.as_view()),
+    path('api/user/password/', views.UserPasswordView.as_view()),
 ]
 
 if settings.DEBUG:

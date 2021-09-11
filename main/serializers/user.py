@@ -43,3 +43,16 @@ class UserSignUpSerializer(serializers.Serializer):
         if User.objects.filter(email=attrs["email"]).count() > 0:
             raise ValidationError({"email": "This email has been already registered."})
         return attrs
+
+
+class UserPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True, min_length=8)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+    new_password_confirm = serializers.CharField(write_only=True, min_length=8)
+
+    def validate(self, attrs):
+        if attrs["new_password"] != attrs["new_password_confirm"]:
+            raise ValidationError({"new_password": "new_password is need to be same to new_password_confirm."})
+        if attrs["password"] == attrs["new_password"]:
+            raise ValidationError({"new_password": "new_password is need to be different to password."})
+        return attrs

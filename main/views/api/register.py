@@ -2,14 +2,11 @@ from django.utils.decorators import method_decorator
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
-from rest_framework_jwt.settings import api_settings
 from drf_yasg.utils import swagger_auto_schema
 
 from main.models import User
 from main.serializers import NoneSerializer, TokenSerializer, UUIDSerializer, UserSignUpSerializer
-
-jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+from main.helpers import gen_jwt
 
 
 class RegisterDummyUserView(GenericAPIView):
@@ -23,9 +20,7 @@ class RegisterDummyUserView(GenericAPIView):
         user.name = 'dummy user'
         user.save()
 
-        payload = jwt_payload_handler(user)
-        token = jwt_encode_handler(payload)
-        serializer = TokenSerializer(data={'token': token})
+        serializer = TokenSerializer(data={'token': gen_jwt(user)})
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data)
 
@@ -48,9 +43,7 @@ class RegisterUUIDView(GenericAPIView):
             device_uuid=serializer.data['uuid'])
         user.save()
 
-        payload = jwt_payload_handler(user)
-        token = jwt_encode_handler(payload)
-        serializer = TokenSerializer(data={'token': token})
+        serializer = TokenSerializer(data={'token': gen_jwt(user)})
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data)
 
@@ -70,8 +63,6 @@ class RegisterUserView(GenericAPIView):
             password=serializer.validated_data["password"])
         user.save()
 
-        payload = jwt_payload_handler(user)
-        token = jwt_encode_handler(payload)
-        serializer = TokenSerializer(data={'token': token})
+        serializer = TokenSerializer(data={'token': gen_jwt(user)})
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data)
