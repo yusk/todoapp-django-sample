@@ -56,3 +56,7 @@ class UserPasswordSerializer(serializers.Serializer):
         if attrs["password"] == attrs["new_password"]:
             raise ValidationError({"new_password": "new_password is need to be different to password."})
         return attrs
+
+
+class UserDeleteSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True, min_length=8)

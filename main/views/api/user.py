@@ -8,7 +8,7 @@ from django_filters import rest_framework as filters
 from drf_yasg.utils import swagger_auto_schema
 
 from main.models import User
-from main.serializers import UserSerializer, UserPasswordSerializer, TokenSerializer
+from main.serializers import UserSerializer, UserPasswordSerializer, TokenSerializer, UserDeleteSerializer
 
 
 class UserFilter(filters.FilterSet):
@@ -42,6 +42,19 @@ class UserView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+    @method_decorator(decorator=swagger_auto_schema(
+        responses={204: None}, request_body=UserDeleteSerializer))
+    def delete(self, request):
+        serializer = UserDeleteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = self.request.user
+        if not user.check_password(serializer.validated_data["password"]):
+            return Response({"passowrd": "password not matched"})
+
+        user.delete()
+        return Response(None, 204)
 
 
 class UserPasswordView(GenericAPIView):

@@ -8,5 +8,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         print('make_debug_user')
-        User.objects.create_superuser(
-            email="test@test.com", password="testuser", name="test")
+        User.objects.create_superuser(email="test@test.com",
+                                      password="testuser",
+                                      name="test")
