@@ -22,22 +22,37 @@ class TaskSerializer(serializers.ModelSerializer):
         self.fields['done_at'].required = False
         self.fields['deadline'].required = False
         self.fields['created_at'].read_only = True
+        self.fields['parent_task_ids'].allow_blank = True
+        self.fields['project_ids'].allow_blank = True
+        self.fields['tags'].allow_blank = True
+
+    def validate_parent_task_ids(self, value):
+        if value == "":
+            return []
+        return [int(s.strip()) for s in value.split(",")]
+
+    def validate_project_ids(self, value):
+        if value == "":
+            return []
+        return [int(s.strip()) for s in value.split(",")]
+
+    def validate_tags(self, value):
+        if value == "":
+            return []
+        return [s.strip() for s in value.split(",")]
 
     def create(self, validated_data):
         tasks = None
         if 'parent_task_ids' in validated_data:
             parent_task_ids = validated_data.pop('parent_task_ids')
-            parent_task_ids = [int(task_id.strip()) for task_id in parent_task_ids.split(",")]
             tasks = list(Task.objects.filter(id__in=parent_task_ids))
         projects = None
         if 'project_ids' in validated_data:
             project_ids = validated_data.pop('project_ids')
-            project_ids = [int(project_id.strip()) for project_id in project_ids.split(",")]
             projects = list(Project.objects.filter(id__in=project_ids))
         tags = None
         if 'tags' in validated_data:
             tag_names = validated_data.pop('tags')
-            tag_names = [tag_name.strip() for tag_name in tag_names.split(",")]
             tags = []
             for name in tag_names:
                 tag, _ = Tag.objects.get_or_create(name=name)
@@ -54,8 +69,7 @@ class TaskSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if 'parent_task_ids' in validated_data:
             parent_task_ids = []
-            for task_id in validated_data.pop('parent_task_ids').split(","):
-                task_id = int(task_id.strip())
+            for task_id in validated_data.pop('parent_task_ids'):
                 if task_id != instance.id:
                     parent_task_ids.append(task_id)
             tasks = list(Task.objects.filter(id__in=parent_task_ids))
@@ -64,14 +78,12 @@ class TaskSerializer(serializers.ModelSerializer):
             instance.parent_tasks.remove(*tasks)
         if 'project_ids' in validated_data:
             project_ids = validated_data.pop('project_ids')
-            project_ids = [int(project_id.strip()) for project_id in project_ids.split(",")]
             projects = list(Project.objects.filter(id__in=project_ids))
             instance.projects.add(*projects)
             projects = instance.projects.exclude(id__in=project_ids)
             instance.projects.remove(*projects)
         if 'tags' in validated_data:
             tag_names = validated_data.pop('tags')
-            tag_names = [tag_name.strip() for tag_name in tag_names.split(",")]
             tags = []
             for name in tag_names:
                 tag, _ = Tag.objects.get_or_create(name=name)
