@@ -11,6 +11,14 @@ from main.utils import get_by_manytomany
 
 
 class TaskFilter(filters.FilterSet):
+    def is_empty(self, queryset, name, value):
+        assert name[-8:] == "_isempty"
+        params = {name[:-8]: ""}
+        if value:
+            return queryset.filter(**params)
+        else:
+            return queryset.exclude(**params)
+
     def get_by_manytomany0(self, queryset, name, value):
         return get_by_manytomany(queryset, name, value, 0)
 
@@ -21,7 +29,16 @@ class TaskFilter(filters.FilterSet):
                                          lookup_expr='icontains')
     description_icontains = filters.CharFilter(field_name='description',
                                                lookup_expr='icontains')
+    description_isempty = filters.BooleanFilter(method='is_empty')
 
+    deadline_year = filters.NumberFilter(field_name='deadline',
+                                         lookup_expr='year')
+    deadline_month = filters.NumberFilter(field_name='deadline',
+                                          lookup_expr='month')
+    deadline_day = filters.NumberFilter(field_name='deadline',
+                                        lookup_expr='day')
+    deadline_date = filters.DateFilter(field_name='deadline',
+                                       lookup_expr='date')
     deadline_gt = filters.DateTimeFilter(field_name='deadline',
                                          lookup_expr='gt')
     deadline_lt = filters.DateTimeFilter(field_name='deadline',
@@ -29,17 +46,28 @@ class TaskFilter(filters.FilterSet):
     deadline_isnull = filters.BooleanFilter(field_name='deadline',
                                             lookup_expr='isnull')
 
+    done_at_year = filters.NumberFilter(field_name='done_at',
+                                        lookup_expr='year')
+    done_at_month = filters.NumberFilter(field_name='done_at',
+                                         lookup_expr='month')
+    done_at_day = filters.NumberFilter(field_name='done_at', lookup_expr='day')
+    done_at_date = filters.DateFilter(field_name='done_at', lookup_expr='date')
     done_at_gt = filters.DateTimeFilter(field_name='done_at', lookup_expr='gt')
     done_at_lt = filters.DateTimeFilter(field_name='done_at', lookup_expr='lt')
     done_at_isnull = filters.BooleanFilter(field_name='done_at',
                                            lookup_expr='isnull')
 
     child_task_id = filters.NumberFilter(method='get_by_manytomany1')
+    child_task_id_isnull = filters.BooleanFilter(field_name='child_tasks',
+                                                 lookup_expr='isnull')
     parent_task_id = filters.NumberFilter(method='get_by_manytomany1')
-    tag_name = filters.CharFilter(method='get_by_manytomany0')
+    parent_task_id_isnull = filters.BooleanFilter(field_name='parent_tasks',
+                                                  lookup_expr='isnull')
     project_id = filters.NumberFilter(method='get_by_manytomany0')
     project_id_isnull = filters.BooleanFilter(field_name='projects',
                                               lookup_expr='isnull')
+    tag_name = filters.CharFilter(method='get_by_manytomany0')
+    tag_isnull = filters.BooleanFilter(field_name='tags', lookup_expr='isnull')
 
     order_by = filters.OrderingFilter(fields=(
         ('id', 'id'),
