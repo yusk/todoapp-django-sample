@@ -16,16 +16,13 @@ class ScheduleSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         self.fields['id'].read_only = True
 
-    def validate_task_id(self, value):
-        return value
-
     def validate(self, data):
         task_id = data.pop("task_id")
-        task = Task.objects.filter(id=task_id, user=self.user).first()
+        task = Task.objects.filter(no=task_id, user=self.user).first()
         if task is None:
             raise serializers.ValidationError({"task_id": "invalid task id"})
         data["task"] = task
         return data
 
     def get_task_id(self, obj):
-        return obj.task.id
+        return obj.task.no

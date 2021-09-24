@@ -71,6 +71,7 @@ class TaskFilter(filters.FilterSet):
 
     order_by = filters.OrderingFilter(fields=(
         ('id', 'id'),
+        ('no', 'no'),
         ('title', 'title'),
         ('deadline', 'deadline'),
         ('done_at', 'done_at'),
@@ -91,6 +92,8 @@ class TaskViewSet(ModelViewSet):
     filter_class = TaskFilter
     ordering_fields = ('created_at', )
     ordering = ('created_at', )
+
+    lookup_field = 'no'
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

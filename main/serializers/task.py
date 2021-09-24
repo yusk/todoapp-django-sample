@@ -5,8 +5,9 @@ from main.utils import with_method_class
 
 
 class TaskSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField()
     parent_task_ids = with_method_class(serializers.CharField)(required=False, help_text='e.g. "1,3"')
-    child_task_ids = serializers.SerializerMethodField(read_only=True)
+    child_task_ids = serializers.SerializerMethodField()
     project_ids = with_method_class(serializers.CharField)(required=False, help_text='e.g. "1,3"')
     tags = with_method_class(serializers.CharField)(required=False, help_text='e.g. "tag1,tag2"')
 
@@ -16,7 +17,6 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['id'].read_only = True
         self.fields['description'].required = False
         self.fields['description'].allow_blank = True
         self.fields['done_at'].required = False
@@ -42,14 +42,15 @@ class TaskSerializer(serializers.ModelSerializer):
         return [s.strip() for s in value.split(",")]
 
     def create(self, validated_data):
+        user = validated_data["user"]
         tasks = None
         if 'parent_task_ids' in validated_data:
             parent_task_ids = validated_data.pop('parent_task_ids')
-            tasks = list(Task.objects.filter(id__in=parent_task_ids))
+            tasks = list(Task.objects.filter(no__in=parent_task_ids, user=user))
         projects = None
         if 'project_ids' in validated_data:
             project_ids = validated_data.pop('project_ids')
-            projects = list(Project.objects.filter(id__in=project_ids))
+            projects = list(Project.objects.filter(id__in=project_ids, user=user))
         tags = None
         if 'tags' in validated_data:
             tag_names = validated_data.pop('tags')
@@ -57,6 +58,7 @@ class TaskSerializer(serializers.ModelSerializer):
             for name in tag_names:
                 tag, _ = Tag.objects.get_or_create(name=name)
                 tags.append(tag)
+        validated_data["no"] = Task.next_no(user)
         instance = super().create(validated_data)
         if tasks:
             instance.parent_tasks.add(*tasks)
@@ -67,14 +69,15 @@ class TaskSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
+        user = instance.user
         if 'parent_task_ids' in validated_data:
             parent_task_ids = []
             for task_id in validated_data.pop('parent_task_ids'):
                 if task_id != instance.id:
                     parent_task_ids.append(task_id)
-            tasks = list(Task.objects.filter(id__in=parent_task_ids))
+            tasks = list(Task.objects.filter(no__in=parent_task_ids, user=user))
             instance.parent_tasks.add(*tasks)
-            tasks = instance.parent_tasks.exclude(id__in=parent_task_ids)
+            tasks = instance.parent_tasks.exclude(no__in=parent_task_ids, user=user)
             instance.parent_tasks.remove(*tasks)
         if 'project_ids' in validated_data:
             project_ids = validated_data.pop('project_ids')
@@ -93,11 +96,14 @@ class TaskSerializer(serializers.ModelSerializer):
             instance.tags.remove(*tags)
         return super().update(instance, validated_data)
 
+    def get_id(self, obj):
+        return obj.no
+
     def get_parent_task_ids(self, obj):
-        return [d.id for d in obj.parent_tasks.all()]
+        return [d.no for d in obj.parent_tasks.all()]
 
     def get_child_task_ids(self, obj):
-        return [d.id for d in obj.child_tasks.all()]
+        return [d.no for d in obj.child_tasks.all()]
 
     def get_project_ids(self, obj):
         return [d.id for d in obj.projects.all()]
