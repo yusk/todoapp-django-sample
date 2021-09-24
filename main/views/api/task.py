@@ -103,7 +103,7 @@ class TaskViewSet(ModelViewSet):
 
     @swagger_auto_schema(request_body=NoneSerializer)
     @action(detail=True, methods=['post'])
-    def done(self, request, pk=None):
+    def done(self, request, **kwargs):
         task = self.get_object()
         task.done_at = timezone.now()
         task.save()
@@ -111,7 +111,7 @@ class TaskViewSet(ModelViewSet):
 
     @swagger_auto_schema(request_body=NoneSerializer)
     @action(detail=True, methods=['post'])
-    def undone(self, request, pk=None):
+    def undone(self, request, **kwargs):
         task = self.get_object()
         task.done_at = None
         task.save()
@@ -119,7 +119,7 @@ class TaskViewSet(ModelViewSet):
 
     @swagger_auto_schema(request_body=NameSerializer)
     @action(detail=True, methods=['post'], url_path="tag/add")
-    def add_tag(self, request, pk=None):
+    def add_tag(self, request, **kwargs):
         task = self.get_object()
         serializer = NameSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -129,7 +129,7 @@ class TaskViewSet(ModelViewSet):
 
     @swagger_auto_schema(request_body=NameSerializer)
     @action(detail=True, methods=['post'], url_path="tag/remove")
-    def remove_tag(self, request, pk=None):
+    def remove_tag(self, request, **kwargs):
         task = self.get_object()
         serializer = NameSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
