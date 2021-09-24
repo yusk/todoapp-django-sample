@@ -16,4 +16,4 @@ class ProjectSerializer(serializers.ModelSerializer):
         self.fields['description'].required = False
 
     def get_task_ids(self, obj):
-        return [d.id for d in obj.tasks.all()]
+        return [d.no for d in obj.tasks.all()]
