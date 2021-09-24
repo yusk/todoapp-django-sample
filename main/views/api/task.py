@@ -22,7 +22,8 @@ class TaskFilter(filters.FilterSet):
     def get_by_manytomany0(self, queryset, name, value):
         return get_by_manytomany(queryset, name, value, 0)
 
-    def get_by_manytomany1(self, queryset, name, value):
+    def get_by_manytomany1_no(self, queryset, name, value):
+        name = name.replace("_id", "_no")
         return get_by_manytomany(queryset, name, value, 1)
 
     title_icontains = filters.CharFilter(field_name='title',
@@ -57,10 +58,10 @@ class TaskFilter(filters.FilterSet):
     done_at_isnull = filters.BooleanFilter(field_name='done_at',
                                            lookup_expr='isnull')
 
-    child_task_id = filters.NumberFilter(method='get_by_manytomany1')
+    child_task_id = filters.NumberFilter(method='get_by_manytomany1_no')
     child_task_id_isnull = filters.BooleanFilter(field_name='child_tasks',
                                                  lookup_expr='isnull')
-    parent_task_id = filters.NumberFilter(method='get_by_manytomany1')
+    parent_task_id = filters.NumberFilter(method='get_by_manytomany1_no')
     parent_task_id_isnull = filters.BooleanFilter(field_name='parent_tasks',
                                                   lookup_expr='isnull')
     project_id = filters.NumberFilter(method='get_by_manytomany0')
@@ -99,7 +100,7 @@ class TaskViewSet(ModelViewSet):
         serializer.save(user=self.request.user)
 
     def get_queryset(self):
-        return super().get_queryset().filter(user=self.request.user)
+        return super().get_queryset().filter(user=self.request.user).distinct()
 
     @swagger_auto_schema(request_body=NoneSerializer)
     @action(detail=True, methods=['post'])
