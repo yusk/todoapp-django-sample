@@ -32,20 +32,27 @@ class TaskFilter(filters.FilterSet):
                                                lookup_expr='icontains')
     description_isempty = filters.BooleanFilter(method='is_empty')
 
-    deadline_year = filters.NumberFilter(field_name='deadline',
+    deadline_year = filters.NumberFilter(field_name='deadline_date',
                                          lookup_expr='year')
-    deadline_month = filters.NumberFilter(field_name='deadline',
+    deadline_month = filters.NumberFilter(field_name='deadline_date',
                                           lookup_expr='month')
-    deadline_day = filters.NumberFilter(field_name='deadline',
+    deadline_day = filters.NumberFilter(field_name='deadline_date',
                                         lookup_expr='day')
-    deadline_date = filters.DateFilter(field_name='deadline',
+    deadline_date = filters.DateFilter(field_name='deadline_date',
                                        lookup_expr='date')
-    deadline_gt = filters.DateTimeFilter(field_name='deadline',
-                                         lookup_expr='gt')
-    deadline_lt = filters.DateTimeFilter(field_name='deadline',
-                                         lookup_expr='lt')
-    deadline_isnull = filters.BooleanFilter(field_name='deadline',
-                                            lookup_expr='isnull')
+    deadline_date_gt = filters.DateTimeFilter(field_name='deadline_date',
+                                              lookup_expr='gt')
+    deadline_date_lt = filters.DateTimeFilter(field_name='deadline_date',
+                                              lookup_expr='lt')
+    deadline_date_isnull = filters.BooleanFilter(field_name='deadline_date',
+                                                 lookup_expr='isnull')
+
+    deadline_time_gt = filters.DateTimeFilter(field_name='deadline_time',
+                                              lookup_expr='gt')
+    deadline_time_lt = filters.DateTimeFilter(field_name='deadline_time',
+                                              lookup_expr='lt')
+    deadline_time_isnull = filters.BooleanFilter(field_name='deadline_time',
+                                                 lookup_expr='isnull')
 
     done_at_year = filters.NumberFilter(field_name='done_at',
                                         lookup_expr='year')

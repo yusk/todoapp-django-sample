@@ -8,7 +8,8 @@ class Task(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(default="")
 
-    deadline = models.DateTimeField(null=True, db_index=True)
+    deadline_date = models.DateField(null=True, db_index=True)
+    deadline_time = models.TimeField(null=True, db_index=True)
     done_at = models.DateTimeField(null=True, db_index=True)
 
     child_tasks = models.ManyToManyField("Task",
@@ -47,3 +48,9 @@ class TaskRelation(models.Model):
                               on_delete=models.CASCADE)
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["parent", "child"],
+                                    name="uq_task_parent_child"),
+        ]
