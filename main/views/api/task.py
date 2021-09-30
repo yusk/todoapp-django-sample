@@ -38,8 +38,8 @@ class TaskFilter(filters.FilterSet):
                                           lookup_expr='month')
     deadline_day = filters.NumberFilter(field_name='deadline_date',
                                         lookup_expr='day')
-    deadline_date = filters.DateFilter(field_name='deadline_date',
-                                       lookup_expr='date')
+
+    deadline_date = filters.DateFilter(field_name='deadline_date')
     deadline_date_gt = filters.DateTimeFilter(field_name='deadline_date',
                                               lookup_expr='gt')
     deadline_date_lt = filters.DateTimeFilter(field_name='deadline_date',
