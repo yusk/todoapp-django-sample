@@ -24,7 +24,7 @@ class ProjectFilter(filters.FilterSet):
 
 class ProjectViewSet(ModelViewSet):
     serializer_class = ProjectSerializer
-    queryset = Project.objects.prefetch_related("tasks")
+    queryset = Project.objects.prefetch_related("tasks", "child", "parent_projects")
     filter_class = ProjectFilter
     ordering_fields = ('created_at', )
     ordering = ('created_at', )
