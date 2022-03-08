@@ -38,6 +38,16 @@ class ProjectSerializer(serializers.ModelSerializer):
             instance.parent_projects.add(*projects)
         return instance
 
+    def update(self, instance, validated_data):
+        user = instance.user
+        if 'parent_project_ids' in validated_data:
+            parent_project_ids = validated_data.pop('parent_project_ids')
+            projects = list(Project.objects.filter(id__in=parent_project_ids, user=user))
+            instance.parent_projects.add(*projects)
+            projects = instance.parent_projects.exclude(id__in=parent_project_ids)
+            instance.parent_projects.remove(*projects)
+        return super().update(instance, validated_data)
+
     def get_task_ids(self, obj):
         return [d.no for d in obj.tasks.all()]
 
