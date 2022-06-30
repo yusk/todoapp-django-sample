@@ -26,6 +26,19 @@ class TaskFilter(filters.FilterSet):
         name = name.replace("_id", "_no")
         return get_by_manytomany(queryset, name, value, 1)
 
+    def get_by_task_ids(self, queryset, name, value):
+        no_list = []
+        for v in value.split(","):
+            try:
+                n = int(v.strip())
+            except ValueError:
+                continue
+            no_list.append(n)
+        return queryset.filter(no__in=no_list)
+
+    task_ids = filters.CharFilter(method='get_by_task_ids',
+                                  help_text="e.g. 2,6")
+
     title_icontains = filters.CharFilter(field_name='title',
                                          lookup_expr='icontains')
     description_icontains = filters.CharFilter(field_name='description',
