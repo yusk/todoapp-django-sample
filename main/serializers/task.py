@@ -1,19 +1,31 @@
 from rest_framework import serializers
+from drf_writable_nested.serializers import WritableNestedModelSerializer
 
-from main.models import Task, Project, Tag
+from main.models import Task, Project, Tag, Repeat
 from main.utils import with_method_class
 
 
-class TaskSerializer(serializers.ModelSerializer):
+class RepeatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Repeat
+        fields = ('id', 'type', 'n', 'm', 'end_date', 'repeat_num', )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['id'].read_only = True
+
+
+class TaskSerializer(WritableNestedModelSerializer):
     id = serializers.SerializerMethodField()
     parent_task_ids = with_method_class(serializers.CharField)(required=False, help_text='e.g. "1,3"')
     child_task_ids = serializers.SerializerMethodField()
     project_ids = with_method_class(serializers.CharField)(required=False, help_text='e.g. "1,3"')
     tags = with_method_class(serializers.CharField)(required=False, help_text='e.g. "tag1,tag2"')
+    repeat = RepeatSerializer(required=False, allow_null=True)
 
     class Meta:
         model = Task
-        fields = ('id', 'title', 'description', 'deadline_date', 'deadline_time', 'done_at', 'created_at', 'parent_task_ids', 'child_task_ids', 'project_ids', 'tags', )
+        fields = ('id', 'title', 'description', 'deadline_date', 'deadline_time', 'repeat', 'done_at', 'created_at', 'parent_task_ids', 'child_task_ids', 'project_ids', 'tags', )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

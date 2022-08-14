@@ -1,4 +1,3 @@
-from django.utils import timezone
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -25,6 +24,19 @@ class TaskFilter(filters.FilterSet):
     def get_by_manytomany1_no(self, queryset, name, value):
         name = name.replace("_id", "_no")
         return get_by_manytomany(queryset, name, value, 1)
+
+    def get_by_task_ids(self, queryset, name, value):
+        no_list = []
+        for v in value.split(","):
+            try:
+                n = int(v.strip())
+            except ValueError:
+                continue
+            no_list.append(n)
+        return queryset.filter(no__in=no_list)
+
+    task_ids = filters.CharFilter(method='get_by_task_ids',
+                                  help_text="e.g. 2,6")
 
     title_icontains = filters.CharFilter(field_name='title',
                                          lookup_expr='icontains')
@@ -113,16 +125,14 @@ class TaskViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def done(self, request, **kwargs):
         task = self.get_object()
-        task.done_at = timezone.now()
-        task.save()
+        task.done()
         return Response(self.get_serializer(task).data)
 
     @swagger_auto_schema(request_body=NoneSerializer)
     @action(detail=True, methods=['post'])
     def undone(self, request, **kwargs):
         task = self.get_object()
-        task.done_at = None
-        task.save()
+        task.undone()
         return Response(self.get_serializer(task).data)
 
     @swagger_auto_schema(request_body=NameSerializer)

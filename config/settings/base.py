@@ -15,6 +15,8 @@ import sys
 import datetime
 from dotenv import load_dotenv
 
+from main.env import CORS_ORIGIN_WHITELIST  # noqa
+
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', buffering=1)
 sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', buffering=1)
 sys.stdin = os.fdopen(sys.stdin.fileno(), 'r', buffering=1)
@@ -25,7 +27,6 @@ BASE_DIR = os.path.dirname(
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 SLACK_WEBHOOK_URL = os.environ.get('SLACK_WEBHOOK_URL')
 IGNORE_GOOGLE_ANALYTICS = bool(os.environ.get('IGNORE_GOOGLE_ANALYTICS'))
-CORS_WHITEHOST = os.environ.get('CORS_WHITEHOST', 'http://localhost:8000')
 
 # Application definition
 
@@ -249,13 +250,6 @@ LOGGING = {
 # CERT
 CERT_ROOT = os.path.join(BASE_DIR, '.well-known')
 CERT_URL = '/.well-known/'
-
-# CORS
-CORS_ORIGIN_WHITELIST = (
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    CORS_WHITEHOST,
-)
 
 # Compress
 COMPRESS_OFFLINE = True
