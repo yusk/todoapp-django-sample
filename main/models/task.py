@@ -74,7 +74,7 @@ class Task(models.Model):
     no = models.IntegerField()
 
     title = models.CharField(max_length=255)
-    description = models.TextField(default="")
+    description = models.TextField(default="", blank=True)
 
     deadline_date = models.DateField(null=True, blank=True, db_index=True)
     deadline_time = models.TimeField(null=True, blank=True, db_index=True)
