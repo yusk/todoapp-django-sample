@@ -144,6 +144,7 @@ class Task(models.Model):
                 task.repeat = repeat
 
         task.id = None
+        task.done_at = None
         task.no = self.next_no(task.user)
         task.save()
         return True
