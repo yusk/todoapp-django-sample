@@ -14,6 +14,9 @@ class Project(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
+    def __str__(self):
+        return f"{self.__class__.__name__ }({self.name})"
+
 
 class ProjectRelation(models.Model):
     parent = models.ForeignKey("Project",
