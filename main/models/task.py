@@ -76,9 +76,9 @@ class Task(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(default="")
 
-    deadline_date = models.DateField(null=True, db_index=True)
-    deadline_time = models.TimeField(null=True, db_index=True)
-    done_at = models.DateTimeField(null=True, db_index=True)
+    deadline_date = models.DateField(null=True, blank=True, db_index=True)
+    deadline_time = models.TimeField(null=True, blank=True, db_index=True)
+    done_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
     repeat = models.ForeignKey("Repeat",
                                null=True,
@@ -90,8 +90,10 @@ class Task(models.Model):
                                          through_fields=("parent", "child"),
                                          related_name="parent_tasks",
                                          blank=True)
-    projects = models.ManyToManyField("Project", related_name="tasks")
-    tags = models.ManyToManyField("Tag", related_name="tasks")
+    projects = models.ManyToManyField("Project",
+                                      related_name="tasks",
+                                      blank=True)
+    tags = models.ManyToManyField("Tag", related_name="tasks", blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
