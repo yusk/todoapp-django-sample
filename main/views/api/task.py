@@ -1,4 +1,3 @@
-from django.utils import timezone
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -126,16 +125,14 @@ class TaskViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def done(self, request, **kwargs):
         task = self.get_object()
-        task.done_at = timezone.now()
-        task.save()
+        task.done()
         return Response(self.get_serializer(task).data)
 
     @swagger_auto_schema(request_body=NoneSerializer)
     @action(detail=True, methods=['post'])
     def undone(self, request, **kwargs):
         task = self.get_object()
-        task.done_at = None
-        task.save()
+        task.undone()
         return Response(self.get_serializer(task).data)
 
     @swagger_auto_schema(request_body=NameSerializer)
