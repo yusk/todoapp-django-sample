@@ -147,6 +147,12 @@ class Task(models.Model):
         task.done_at = None
         task.no = self.next_no(task.user)
         task.save()
+        projects = [p.pk for p in self.projects.all()]
+        if len(projects) > 0:
+            task.projects.add(*projects)
+        tags = [t.pk for t in self.tags.all()]
+        if len(tags) > 0:
+            task.tags.add(*tags)
         return True
 
     def done(self):
