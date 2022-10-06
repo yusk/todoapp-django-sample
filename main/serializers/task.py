@@ -15,6 +15,10 @@ class RepeatSerializer(serializers.ModelSerializer):
         self.fields['id'].read_only = True
 
 
+class TaskIdSerializer(serializers.Serializer):
+    task_id = serializers.IntegerField()
+
+
 class TaskSerializer(WritableNestedModelSerializer):
     id = serializers.SerializerMethodField()
     parent_task_ids = with_method_class(serializers.CharField)(required=False, help_text='e.g. "1,3"')
