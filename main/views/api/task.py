@@ -156,7 +156,7 @@ class TaskViewSet(ModelViewSet):
         return Response(self.get_serializer(task).data)
 
     @swagger_auto_schema(request_body=TaskIdSerializer)
-    @action(detail=True, methods=['post'], url_path="child")
+    @action(detail=True, methods=['post'], url_path="child/add")
     def add_child(self, request, **kwargs):
         task = self.get_object()
         serializer = TaskIdSerializer(data=request.data)
@@ -170,7 +170,7 @@ class TaskViewSet(ModelViewSet):
         return Response(TaskSerializer(task).data, status=201)
 
     @swagger_auto_schema(request_body=TaskIdSerializer)
-    @action(detail=True, methods=['post'], url_path="parent")
+    @action(detail=True, methods=['post'], url_path="parent/add")
     def add_parent(self, request, **kwargs):
         task = self.get_object()
         serializer = TaskIdSerializer(data=request.data)
@@ -181,4 +181,32 @@ class TaskViewSet(ModelViewSet):
         if target is None:
             return Response({"task_id": "not found"}, status=404)
         task.parent_tasks.add(target)
+        return Response(TaskSerializer(task).data, status=201)
+
+    @swagger_auto_schema(request_body=TaskIdSerializer)
+    @action(detail=True, methods=['post'], url_path="child/remove")
+    def remove_child(self, request, **kwargs):
+        task = self.get_object()
+        serializer = TaskIdSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target = Task.objects.filter(
+            user=request.user,
+            no=serializer.validated_data["task_id"]).first()
+        if target is None:
+            return Response({"task_id": "not found"}, status=404)
+        task.child_tasks.remove(target)
+        return Response(TaskSerializer(task).data, status=201)
+
+    @swagger_auto_schema(request_body=TaskIdSerializer)
+    @action(detail=True, methods=['post'], url_path="parent/remove")
+    def remove_parent(self, request, **kwargs):
+        task = self.get_object()
+        serializer = TaskIdSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target = Task.objects.filter(
+            user=request.user,
+            no=serializer.validated_data["task_id"]).first()
+        if target is None:
+            return Response({"task_id": "not found"}, status=404)
+        task.parent_tasks.remove(target)
         return Response(TaskSerializer(task).data, status=201)
