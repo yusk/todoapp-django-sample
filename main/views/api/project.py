@@ -58,11 +58,18 @@ class ProjectViewSet(ModelViewSet):
             tasks[task.id] = task_data
             return task_data
 
-        res = []
+        results = []
         for task in project.tasks.prefetch_related("projects", "child_tasks",
                                                    "parent_tasks"):
             if task.id not in tasks:
                 tasks[id] = TaskSerializer(task).data
             visited = set()
-            res.append(get_task_data(task, visited))
+            results.append(get_task_data(task, visited))
+
+        res = {
+            "count": len(results),
+            "next": None,
+            "previous": None,
+            "results": results
+        }
         return Response(res, status=200)
