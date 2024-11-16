@@ -1,10 +1,10 @@
-from django.db import models
-from django.utils import timezone
-from django.core.exceptions import ValidationError
-
 import calendar
 from copy import deepcopy
-from datetime import timedelta, date
+from datetime import date, timedelta
+
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.utils import timezone
 
 
 def next_weekday(d, weekday):
@@ -18,10 +18,11 @@ class Repeat(models.Model):
     WEEKS = list(calendar.day_name)
 
     class Type(models.TextChoices):
-        DAY = 'DAY', 'DAY'
-        WEEK = 'WEEK', 'WEEK'
-        MONTH = 'MONTH', 'MONTH'
-        YEAR = 'YEAR', 'YEAR'
+        DAY = "DAY", "DAY"
+        WEEK = "WEEK", "WEEK"
+        MONTH = "MONTH", "MONTH"
+        YEAR = "YEAR", "YEAR"
+        EOEM = "EOEM", "EOEM"
 
     type = models.CharField(max_length=15, choices=Type.choices)
     n = models.IntegerField()  # n 日ごと, 毎月 n 週目, 毎月 n 日, 毎年 n 月
@@ -48,21 +49,20 @@ class Repeat(models.Model):
     def clean(self):
         if self.type == self.Type.WEEK:
             if self.n < 0 or 6 < self.n:
-                raise ValidationError({'n': "n need to be between 0 to 6"})
+                raise ValidationError({"n": "n need to be between 0 to 6"})
         elif self.type == self.Type.MONTH:
             if self.m is None:
                 if self.n < 1 or 31 < self.n:
-                    raise ValidationError(
-                        {'n': "n need to be between 1 to 31"})
+                    raise ValidationError({"n": "n need to be between 1 to 31"})
             else:
-                raise ValidationError({'m': "m need to be between 0 to 6"})
-        elif self.type == 'YEAR':
+                raise ValidationError({"m": "m need to be between 0 to 6"})
+        elif self.type == "YEAR":
             if self.m is None:
-                raise ValidationError({'m': "m required"})
+                raise ValidationError({"m": "m required"})
             elif self.n < 1 or 12 < self.n:
-                raise ValidationError({'n': "n need to be between 1 to 12"})
+                raise ValidationError({"n": "n need to be between 1 to 12"})
             elif self.m < 1 or 31 < self.m:  # todo: impl day of month validation
-                raise ValidationError({'m': "m need to be between 1 to 31"})
+                raise ValidationError({"m": "m need to be between 1 to 31"})
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -80,19 +80,12 @@ class Task(models.Model):
     deadline_time = models.TimeField(null=True, blank=True, db_index=True)
     done_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
-    repeat = models.ForeignKey("Repeat",
-                               null=True,
-                               blank=True,
-                               on_delete=models.CASCADE)
+    repeat = models.ForeignKey("Repeat", null=True, blank=True, on_delete=models.CASCADE)
 
-    child_tasks = models.ManyToManyField("Task",
-                                         through="TaskRelation",
-                                         through_fields=("parent", "child"),
-                                         related_name="parent_tasks",
-                                         blank=True)
-    projects = models.ManyToManyField("Project",
-                                      related_name="tasks",
-                                      blank=True)
+    child_tasks = models.ManyToManyField(
+        "Task", through="TaskRelation", through_fields=("parent", "child"), related_name="parent_tasks", blank=True
+    )
+    projects = models.ManyToManyField("Project", related_name="tasks", blank=True)
     tags = models.ManyToManyField("Tag", related_name="tasks", blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -114,19 +107,21 @@ class Task(models.Model):
                 if today.month == 12:
                     task.deadline_date = date(today.year + 1, 1, self.repeat.n)
                 else:
-                    task.deadline_date = date(today.year, today.month + 1,
-                                              self.repeat.n)
+                    task.deadline_date = date(today.year, today.month + 1, self.repeat.n)
             else:
                 if today.month == 12:
                     next_month = date(today.year + 1, 1, 1)
                 else:
-                    next_month = date(today.year, today.month, 1)
+                    next_month = date(today.year, today.month + 1, 1)
                 d = next_weekday(next_month, self.repeat.m)
-                task.deadline_date = d + timedelta(days=(self.repeat.n - 1) *
-                                                   7)
+                task.deadline_date = d + timedelta(days=(self.repeat.n - 1) * 7)
         elif self.repeat.type == Repeat.Type.YEAR:
-            task.deadline_date = date(today.year + 1, self.repeat.n,
-                                      self.repeat.m)
+            task.deadline_date = date(today.year + 1, self.repeat.n, self.repeat.m)
+        elif self.repeat.type == Repeat.Type.EOEM:
+            nextnext_month = today.month + 2
+            year = today.year + nextnext_month // 13
+            nextnext_month = (nextnext_month - 1) % 12 + 1
+            task.deadline_date = date(year, nextnext_month, 1) - timedelta(days=1)
         else:
             return False
 
@@ -168,8 +163,7 @@ class Task(models.Model):
 
     @classmethod
     def next_no(cls, user):
-        data = cls.objects.filter(
-            user=user).order_by("-no").values("no").first()
+        data = cls.objects.filter(user=user).order_by("-no").values("no").first()
         print(data)
         if data is None:
             return 1
@@ -177,24 +171,18 @@ class Task(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["user", "no"],
-                                    name="task_user_no_unique"),
+            models.UniqueConstraint(fields=["user", "no"], name="task_user_no_unique"),
         ]
-        indexes = [models.Index(fields=['user', 'no'])]
+        indexes = [models.Index(fields=["user", "no"])]
 
 
 class TaskRelation(models.Model):
-    parent = models.ForeignKey("Task",
-                               related_name="parent",
-                               on_delete=models.CASCADE)
-    child = models.ForeignKey("Task",
-                              related_name="child",
-                              on_delete=models.CASCADE)
+    parent = models.ForeignKey("Task", related_name="parent", on_delete=models.CASCADE)
+    child = models.ForeignKey("Task", related_name="child", on_delete=models.CASCADE)
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["parent", "child"],
-                                    name="uq_task_parent_child"),
+            models.UniqueConstraint(fields=["parent", "child"], name="uq_task_parent_child"),
         ]

@@ -1,4 +1,4 @@
-FROM amd64/python:3.8-slim as builder
+FROM amd64/python:3.12-slim as builder
 
 WORKDIR /tmp
 
@@ -10,7 +10,7 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry export --without-hashes -f requirements.txt > requirements.txt
 
 
-FROM amd64/python:3.8-slim
+FROM amd64/python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1
 
@@ -20,6 +20,7 @@ RUN apt update
 
 # for mysqlclient
 RUN apt install -y default-libmysqlclient-dev
+RUN apt install -y pkg-config
 
 # for uwsgi
 RUN apt install -y gcc

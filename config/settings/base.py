@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
     'sass_processor',
-    'compressor',
+    # 'compressor',
     'rest_framework',
     'drf_yasg',
     'corsheaders',
@@ -178,7 +178,7 @@ LOGIN_REDIRECT_URL = '/'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'compressor.finders.CompressorFinder',
+    # 'compressor.finders.CompressorFinder',
 )
 
 # Sass/SCSS

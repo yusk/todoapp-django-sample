@@ -2,7 +2,7 @@
 
 ## env
 
-* python 3.8.x
+* pyproject.toml の python を参照
   * poetry
 
 ### all
