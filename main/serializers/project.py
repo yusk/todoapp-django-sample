@@ -14,13 +14,22 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ('id', 'name', 'description', 'task_ids', 'done_task_ids', 'not_done_task_ids', 'parent_project_ids', 'child_project_ids', )
+        fields = (
+            "id",
+            "name",
+            "description",
+            "task_ids",
+            "done_task_ids",
+            "not_done_task_ids",
+            "parent_project_ids",
+            "child_project_ids",
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['id'].read_only = True
-        self.fields['description'].required = False
-        self.fields['parent_project_ids'].allow_blank = True
+        self.fields["id"].read_only = True
+        self.fields["description"].required = False
+        self.fields["parent_project_ids"].allow_blank = True
 
     def validate_parent_project_ids(self, value):
         if value == "":
@@ -30,8 +39,8 @@ class ProjectSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = validated_data["user"]
         projects = None
-        if 'parent_project_ids' in validated_data:
-            parent_project_ids = validated_data.pop('parent_project_ids')
+        if "parent_project_ids" in validated_data:
+            parent_project_ids = validated_data.pop("parent_project_ids")
             projects = list(Project.objects.filter(id__in=parent_project_ids, user=user))
         instance = super().create(validated_data)
         if projects:
@@ -40,8 +49,8 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         user = instance.user
-        if 'parent_project_ids' in validated_data:
-            parent_project_ids = validated_data.pop('parent_project_ids')
+        if "parent_project_ids" in validated_data:
+            parent_project_ids = validated_data.pop("parent_project_ids")
             projects = list(Project.objects.filter(id__in=parent_project_ids, user=user))
             instance.parent_projects.add(*projects)
             projects = instance.parent_projects.exclude(id__in=parent_project_ids)

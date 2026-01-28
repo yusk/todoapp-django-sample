@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class Project(models.Model):
@@ -6,30 +7,33 @@ class Project(models.Model):
 
     name = models.CharField(max_length=255)
     description = models.TextField(default="")
-    child_projects = models.ManyToManyField("Project",
-                                            through="ProjectRelation",
-                                            through_fields=("parent", "child"),
-                                            related_name="parent_projects",
-                                            blank=True)
+    child_projects = models.ManyToManyField(
+        "Project",
+        through="ProjectRelation",
+        through_fields=("parent", "child"),
+        related_name="parent_projects",
+        blank=True,
+    )
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    archived_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
     def __str__(self):
         return f"{self.__class__.__name__ }({self.name})"
 
+    def archive(self):
+        if self.archived_at is None:
+            self.archived_at = timezone.now()
+            self.save()
+
 
 class ProjectRelation(models.Model):
-    parent = models.ForeignKey("Project",
-                               related_name="parent",
-                               on_delete=models.CASCADE)
-    child = models.ForeignKey("Project",
-                              related_name="child",
-                              on_delete=models.CASCADE)
+    parent = models.ForeignKey("Project", related_name="parent", on_delete=models.CASCADE)
+    child = models.ForeignKey("Project", related_name="child", on_delete=models.CASCADE)
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["parent", "child"],
-                                    name="uq_project_parent_child"),
+            models.UniqueConstraint(fields=["parent", "child"], name="uq_project_parent_child"),
         ]

@@ -1,20 +1,23 @@
-from rest_framework.viewsets import ModelViewSet
 from django_filters import rest_framework as filters
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 
 from main.models import Project
-from main.serializers import ProjectSerializer, TaskSerializer
+from main.serializers import NoneSerializer, ProjectSerializer, TaskSerializer
 
 
 class ProjectFilter(filters.FilterSet):
-    name__gt = filters.CharFilter(field_name='name', lookup_expr='gt')
-    name__lt = filters.CharFilter(field_name='name', lookup_expr='lt')
+    name__gt = filters.CharFilter(field_name="name", lookup_expr="gt")
+    name__lt = filters.CharFilter(field_name="name", lookup_expr="lt")
 
-    order_by = filters.OrderingFilter(fields=(
-        ('id', 'id'),
-        ('title', 'name'),
-    ), )
+    order_by = filters.OrderingFilter(
+        fields=(
+            ("id", "id"),
+            ("title", "name"),
+        ),
+    )
 
     class Meta:
         model = Project
@@ -26,19 +29,18 @@ class ProjectFilter(filters.FilterSet):
 
 class ProjectViewSet(ModelViewSet):
     serializer_class = ProjectSerializer
-    queryset = Project.objects.prefetch_related("tasks", "child_projects",
-                                                "parent_projects")
+    queryset = Project.objects.prefetch_related("tasks", "child_projects", "parent_projects")
     filter_class = ProjectFilter
-    ordering_fields = ('created_at', )
-    ordering = ('created_at', )
+    ordering_fields = ("created_at",)
+    ordering = ("created_at",)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
     def get_queryset(self):
-        return super().get_queryset().filter(user=self.request.user)
+        return super().get_queryset().filter(user=self.request.user, archived_at__isnull=True)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=["get"])
     def tasks(self, request, **kwargs):
         project = self.get_object()
         tasks = {}
@@ -49,27 +51,26 @@ class ProjectViewSet(ModelViewSet):
             visited.add(task.id)
             task_data = TaskSerializer(task).data
             task_data["child_tasks"] = []
-            for child_task in task.child_tasks.prefetch_related(
-                    "projects", "child_tasks", "parent_tasks"):
+            for child_task in task.child_tasks.prefetch_related("projects", "child_tasks", "parent_tasks"):
                 if child_task.id in visited:
                     continue
-                task_data["child_tasks"].append(
-                    get_task_data(child_task, visited))
+                task_data["child_tasks"].append(get_task_data(child_task, visited))
             tasks[task.id] = task_data
             return task_data
 
         results = []
-        for task in project.tasks.prefetch_related("projects", "child_tasks",
-                                                   "parent_tasks"):
+        for task in project.tasks.prefetch_related("projects", "child_tasks", "parent_tasks"):
             if task.id not in tasks:
                 tasks[id] = TaskSerializer(task).data
             visited = set()
             results.append(get_task_data(task, visited))
 
-        res = {
-            "count": len(results),
-            "next": None,
-            "previous": None,
-            "results": results
-        }
+        res = {"count": len(results), "next": None, "previous": None, "results": results}
         return Response(res, status=200)
+
+    @action(detail=True, methods=["post"])
+    @swagger_auto_schema(request_body=NoneSerializer)
+    def archive(self, request, **kwargs):
+        project = self.get_object()
+        project.archive()
+        return Response(None, status=204)
