@@ -1,18 +1,25 @@
-from rest_framework import serializers
 from drf_writable_nested.serializers import WritableNestedModelSerializer
+from rest_framework import serializers
 
-from main.models import Task, Project, Tag, Repeat
+from main.models import Project, Repeat, Tag, Task
 from main.utils import with_method_class
 
 
 class RepeatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Repeat
-        fields = ('id', 'type', 'n', 'm', 'end_date', 'repeat_num', )
+        fields = (
+            "id",
+            "type",
+            "n",
+            "m",
+            "end_date",
+            "repeat_num",
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['id'].read_only = True
+        self.fields["id"].read_only = True
 
 
 class TaskIdSerializer(serializers.Serializer):
@@ -29,19 +36,32 @@ class TaskSerializer(WritableNestedModelSerializer):
 
     class Meta:
         model = Task
-        fields = ('id', 'title', 'description', 'deadline_date', 'deadline_time', 'repeat', 'done_at', 'created_at', 'parent_task_ids', 'child_task_ids', 'project_ids', 'tags', )
+        fields = (
+            "id",
+            "title",
+            "description",
+            "deadline_date",
+            "deadline_time",
+            "repeat",
+            "done_at",
+            "created_at",
+            "parent_task_ids",
+            "child_task_ids",
+            "project_ids",
+            "tags",
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['description'].required = False
-        self.fields['description'].allow_blank = True
-        self.fields['done_at'].required = False
-        self.fields['deadline_date'].required = False
-        self.fields['deadline_time'].required = False
-        self.fields['created_at'].read_only = True
-        self.fields['parent_task_ids'].allow_blank = True
-        self.fields['project_ids'].allow_blank = True
-        self.fields['tags'].allow_blank = True
+        self.fields["description"].required = False
+        self.fields["description"].allow_blank = True
+        self.fields["done_at"].required = False
+        self.fields["deadline_date"].required = False
+        self.fields["deadline_time"].required = False
+        self.fields["created_at"].read_only = True
+        self.fields["parent_task_ids"].allow_blank = True
+        self.fields["project_ids"].allow_blank = True
+        self.fields["tags"].allow_blank = True
 
     def validate_parent_task_ids(self, value):
         if value == "":
@@ -61,16 +81,16 @@ class TaskSerializer(WritableNestedModelSerializer):
     def create(self, validated_data):
         user = validated_data["user"]
         tasks = None
-        if 'parent_task_ids' in validated_data:
-            parent_task_ids = validated_data.pop('parent_task_ids')
+        if "parent_task_ids" in validated_data:
+            parent_task_ids = validated_data.pop("parent_task_ids")
             tasks = list(Task.objects.filter(no__in=parent_task_ids, user=user))
         projects = None
-        if 'project_ids' in validated_data:
-            project_ids = validated_data.pop('project_ids')
+        if "project_ids" in validated_data:
+            project_ids = validated_data.pop("project_ids")
             projects = list(Project.objects.filter(id__in=project_ids, user=user))
         tags = None
-        if 'tags' in validated_data:
-            tag_names = validated_data.pop('tags')
+        if "tags" in validated_data:
+            tag_names = validated_data.pop("tags")
             tags = []
             for name in tag_names:
                 tag, _ = Tag.objects.get_or_create(name=name)
@@ -87,23 +107,23 @@ class TaskSerializer(WritableNestedModelSerializer):
 
     def update(self, instance, validated_data):
         user = instance.user
-        if 'parent_task_ids' in validated_data:
+        if "parent_task_ids" in validated_data:
             parent_task_ids = []
-            for task_id in validated_data.pop('parent_task_ids'):
+            for task_id in validated_data.pop("parent_task_ids"):
                 if task_id != instance.id:
                     parent_task_ids.append(task_id)
             tasks = list(Task.objects.filter(no__in=parent_task_ids, user=user))
             instance.parent_tasks.add(*tasks)
             tasks = instance.parent_tasks.exclude(no__in=parent_task_ids, user=user)
             instance.parent_tasks.remove(*tasks)
-        if 'project_ids' in validated_data:
-            project_ids = validated_data.pop('project_ids')
+        if "project_ids" in validated_data:
+            project_ids = validated_data.pop("project_ids")
             projects = list(Project.objects.filter(id__in=project_ids))
             instance.projects.add(*projects)
             projects = instance.projects.exclude(id__in=project_ids)
             instance.projects.remove(*projects)
-        if 'tags' in validated_data:
-            tag_names = validated_data.pop('tags')
+        if "tags" in validated_data:
+            tag_names = validated_data.pop("tags")
             tags = []
             for name in tag_names:
                 tag, _ = Tag.objects.get_or_create(name=name)
